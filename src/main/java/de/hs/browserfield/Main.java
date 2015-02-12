@@ -9,8 +9,8 @@ public class Main {
 	public static void main(String[] args) throws URISyntaxException,
 			InterruptedException, JSONException {
 
-		Bot b = new Bot();
-		b.connect("http://browserfield.anythingsthing.de/");
+		Bot b = new Bot(); 
+		b.connect("http://localhost:3000/");
 
 		while (true) {
 			Thread.sleep(10000);

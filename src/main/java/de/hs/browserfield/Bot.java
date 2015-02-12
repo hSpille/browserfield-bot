@@ -15,6 +15,7 @@ import de.hs.browserfield.model.Player;
 
 public class Bot implements BrowserFieldEventListener {
 
+	private static final int ACCURACY = 5;
 	private Socket socket;
 	private String iAm;
 	private Player myPlayer;
@@ -47,7 +48,7 @@ public class Bot implements BrowserFieldEventListener {
 		if (opId != null) {
 			double closestOpDirection = getPlayerPlayerDirection(opId);
 			System.out.println("Op Winkel:" + closestOpDirection + " My Orientation:" + myPlayer.orientation);
-			if (closestOpDirection < myPlayer.orientation + 20 && closestOpDirection > myPlayer.orientation - 20) {
+			if (closestOpDirection < myPlayer.orientation + ACCURACY && closestOpDirection > myPlayer.orientation - ACCURACY) {
 				chatMessage.put("text", "Eat this!");
 				socket.emit("chat-message", chatMessage);
 				if (didShootLastTime) {
@@ -58,12 +59,12 @@ public class Bot implements BrowserFieldEventListener {
 					jsonWalk.put("X");
 				}
 			} else {
-				if (closestOpDirection < myPlayer.orientation - 20) {
+				if (closestOpDirection < myPlayer.orientation - ACCURACY) {
 					// chatMessage.put("text", "Going A");
 					jsonWalk.put("A");
 					jsonWalk.put("W");
 				}
-				if (closestOpDirection > myPlayer.orientation + 20) {
+				if (closestOpDirection > myPlayer.orientation + ACCURACY) {
 					// chatMessage.put("text", "Going D");
 					jsonWalk.put("D");
 					jsonWalk.put("W");
