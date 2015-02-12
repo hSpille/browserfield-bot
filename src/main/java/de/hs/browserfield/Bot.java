@@ -1,6 +1,10 @@
 package de.hs.browserfield;
 
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Random;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -15,12 +19,15 @@ import de.hs.browserfield.model.Player;
 
 public class Bot implements BrowserFieldEventListener {
 
+	private static final int BE_RUDE_PERCENTAGE = 990;
 	private static final int ACCURACY = 5;
 	private Socket socket;
 	private String iAm;
 	private Player myPlayer;
 	private UpdateListener updateListener;
 	boolean didShootLastTime = false;
+	boolean didFlameThisHit = false;
+	private List<String> flames = new ArrayList<String>();
 
 	public void connect(String URL) throws InterruptedException,
 			URISyntaxException, JSONException {
@@ -31,6 +38,7 @@ public class Bot implements BrowserFieldEventListener {
 		connectListener.setMyListener(this);
 		updateListener = new UpdateListener();
 		updateListener.setMyListener(this);
+		flames.addAll(Arrays.asList("i am bored", "Fool!", "Bitch please" ," Have seen better players", "Your mom is better", "Noob!","pew pew", "o7", "haha looser...","omg FAIL"));
 		socket.on(Socket.EVENT_CONNECT, connectListener);
 		socket.on("update", updateListener);
 		socket.connect();
@@ -43,43 +51,99 @@ public class Bot implements BrowserFieldEventListener {
 		}
 
 		Player opId = getClosestOp();
-		JSONObject chatMessage = new JSONObject();
+		
 		JSONArray jsonWalk = new JSONArray();
 		if (opId != null) {
-			double closestOpDirection = getPlayerPlayerDirection(opId);
-			System.out.println("Op Winkel:" + closestOpDirection + " My Orientation:" + myPlayer.orientation);
-			if (closestOpDirection < myPlayer.orientation + ACCURACY && closestOpDirection > myPlayer.orientation - ACCURACY) {
-				chatMessage.put("text", "Eat this!");
-				socket.emit("chat-message", chatMessage);
-				if (didShootLastTime) {
-					didShootLastTime = false;
-					jsonWalk.put("");
-				} else {
-					didShootLastTime = true;
-					jsonWalk.put("X");
-				}
-			} else {
-				if (closestOpDirection < myPlayer.orientation - ACCURACY) {
-					// chatMessage.put("text", "Going A");
-					jsonWalk.put("A");
-					jsonWalk.put("W");
-				}
-				if (closestOpDirection > myPlayer.orientation + ACCURACY) {
-					// chatMessage.put("text", "Going D");
-					jsonWalk.put("D");
-					jsonWalk.put("W");
+			chaseAndKillOponent(opId,jsonWalk);
+		} else {
+			jsonWalk.put("W");
+			int randumNum = generateRandomForDescisionWithBounds(0, 10);
+			if(randumNum == 9){
+				jsonWalk.put("A");
+			}
+			if(randumNum == 1){
+				jsonWalk.put("D");
+			}
+		}
+		JSONObject chatMessage = beRude();
+		
+		if(chatMessage.length() != 0){
+			socket.emit("chat-message", chatMessage);
+		}
+		learnFlames();
+		socket.emit("pressedKeys", jsonWalk);
+	}
+
+	private void learnFlames() throws JSONException {
+		for (Player p: updateListener.getPlayers()) {
+			if(p.id == myPlayer.id){
+				continue;
+			}
+			JSONArray ms = p.message;
+			if(ms.length() != 0){
+				for (int  i = 0 ; i < ms.length(); i++){
+					JSONObject jsonOb = ms.getJSONObject(i);
+					String message = jsonOb.getString("text");
+					if(!flames.contains(message)){
+						flames.add(message);
+					}
 				}
 			}
-
-		} else {
-			chatMessage.put("text", "I am bored...");
 		}
-		//
-		socket.emit("pressedKeys", jsonWalk);
-		System.out.println("Sending keys: " + jsonWalk);
+	}
 
-		// jsonWalk.put("W");
-		// jsonWalk.put("D");
+	private int generateRandomForDescisionWithBounds(int min, int max) {
+		Random r = new Random();
+		int randumNum = r.nextInt((max - min) +1) +min;
+		return randumNum;
+	}
+
+	private JSONObject beRude() throws JSONException {
+		JSONObject toReturn = new JSONObject();
+		if(myPlayer.isHit){
+			if(!this.didFlameThisHit){
+				this.didFlameThisHit = true;
+				toReturn.put("text", "Cheater!");
+				return toReturn;
+			}
+		}else{
+			this.didFlameThisHit = false;
+		}
+		int randomVar = this.generateRandomForDescisionWithBounds(0, 1000);
+		if(randomVar >BE_RUDE_PERCENTAGE){
+			toReturn.put("text", getRandomFlame());
+		}
+		return toReturn;
+	}
+
+	private String getRandomFlame() {
+		int flameIndex = this.generateRandomForDescisionWithBounds(0, flames.size());
+		return flames.get(flameIndex);
+	}
+
+	private void chaseAndKillOponent(Player opId, JSONArray jsonWalk) throws JSONException {
+		double closestOpDirection = getPlayerPlayerDirection(opId);
+		System.out.println("Op Winkel:" + closestOpDirection + " My Orientation:" + myPlayer.orientation);
+		if (closestOpDirection < myPlayer.orientation + ACCURACY && closestOpDirection > myPlayer.orientation - ACCURACY) {
+			if (didShootLastTime) {
+				didShootLastTime = false;
+				jsonWalk.put("");
+			} else {
+				didShootLastTime = true;
+				jsonWalk.put("X");
+			}
+		} else {
+			if (closestOpDirection < myPlayer.orientation - ACCURACY) {
+				// chatMessage.put("text", "Going A");
+				jsonWalk.put("A");
+				jsonWalk.put("W");
+			}
+			if (closestOpDirection > myPlayer.orientation + ACCURACY) {
+				// chatMessage.put("text", "Going D");
+				jsonWalk.put("D");
+				jsonWalk.put("W");
+			}
+		}
 	}
 
 	private double getPlayerPlayerDirection(Player op) {
@@ -95,6 +159,9 @@ public class Bot implements BrowserFieldEventListener {
 		for (Player player : updateListener.getPlayers()) {
 			if (player.id.equalsIgnoreCase(iAm)) {
 				continue;
+			}
+			if(player.isHit == true){
+				continue; 
 			}
 			Double xAbs = myPlayer.x - player.x;
 			Double yAbs = myPlayer.y - player.y;
