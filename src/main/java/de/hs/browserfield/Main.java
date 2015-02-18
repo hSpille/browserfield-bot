@@ -10,7 +10,8 @@ public class Main {
 			InterruptedException, JSONException {
 
 		Bot b = new Bot(); 
-		b.connect("http://localhost:3000/");
+		b.connect("http://browserfield.anythingsthing.de");
+//		b.connect("http://localhost:3000");
 
 		while (true) {
 			Thread.sleep(10000);

@@ -21,6 +21,7 @@ public class Bot implements BrowserFieldEventListener {
 
 	private static final int BE_RUDE_PERCENTAGE = 990;
 	private static final int ACCURACY = 5;
+	private static final int STRAIGHT = 5;
 	private Socket socket;
 	private String iAm;
 	private Player myPlayer;
@@ -131,17 +132,22 @@ public class Bot implements BrowserFieldEventListener {
 			} else {
 				didShootLastTime = true;
 				jsonWalk.put("X");
+				jsonWalk.put("W");
 			}
 		} else {
-			if (closestOpDirection < myPlayer.orientation - ACCURACY) {
-				// chatMessage.put("text", "Going A");
-				jsonWalk.put("A");
+			if (closestOpDirection < myPlayer.orientation - STRAIGHT && closestOpDirection > myPlayer.orientation + STRAIGHT){
 				jsonWalk.put("W");
-			}
-			if (closestOpDirection > myPlayer.orientation + ACCURACY) {
-				// chatMessage.put("text", "Going D");
-				jsonWalk.put("D");
-				jsonWalk.put("W");
+			}else{
+				if (closestOpDirection < myPlayer.orientation - ACCURACY) {
+					// chatMessage.put("text", "Going A");
+					jsonWalk.put("A");
+					jsonWalk.put("W");
+				}
+				if (closestOpDirection > myPlayer.orientation + ACCURACY) {
+					// chatMessage.put("text", "Going D");
+					jsonWalk.put("D");
+					jsonWalk.put("W");
+				}
 			}
 		}
 	}
