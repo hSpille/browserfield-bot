@@ -1,5 +1,8 @@
 package de.hs.browserfield.listener;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import com.github.nkzawa.emitter.Emitter;
 import com.github.nkzawa.socketio.client.Socket;
 
@@ -15,6 +18,14 @@ public class ConnectListener implements Emitter.Listener {
 		System.out.println("Connect!: " + args);
 		iAm = socket.id();
 		myListener.serverConnect(this);
+		JSONObject name = new JSONObject();
+		try {
+			name.put("name", "c3po");
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		socket.emit("join", name);
 	}
 
 	public void setSocket(Socket socket) {
