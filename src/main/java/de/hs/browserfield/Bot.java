@@ -14,6 +14,7 @@ import com.github.nkzawa.socketio.client.IO;
 import com.github.nkzawa.socketio.client.Socket;
 
 import de.hs.browserfield.listener.ConnectListener;
+import de.hs.browserfield.listener.SocketConnection;
 import de.hs.browserfield.listener.UpdateListener;
 import de.hs.browserfield.model.Player;
 
@@ -21,7 +22,7 @@ public class Bot implements BrowserFieldEventListener {
 
 	private static final int BE_RUDE_PERCENTAGE = 990;
 	private static final int ACCURACY = 5;
-	private Socket socket;
+	private SocketConnection socket;
 	private String iAm;
 	private Player myPlayer;
 	private UpdateListener updateListener;
@@ -32,15 +33,13 @@ public class Bot implements BrowserFieldEventListener {
 	public void connect(String URL) throws InterruptedException,
 			URISyntaxException, JSONException {
 		IO.Options options = new IO.Options();
-		socket = IO.socket(URL, options);
+		socket = new SocketConnection(IO.socket(URL, options));
 		ConnectListener connectListener = new ConnectListener();
 		connectListener.setSocket(socket);
 		connectListener.setMyListener(this);
 		updateListener = new UpdateListener();
 		updateListener.setMyListener(this);
-		flames.addAll(Arrays.asList("i am bored", "Fool!", "Bitch please",
-				" Have seen better players", "Your mom is better", "Noob!",
-				"pew pew", "o7", "haha looser...", "omg FAIL"));
+		flames.addAll(Arrays.asList("i am bored", "Fool!", "Bitch please", " Have seen better players", "Your mom is better", "Noob!", "pew pew", "o7", "haha looser...", "omg FAIL"));
 		socket.on(Socket.EVENT_CONNECT, connectListener);
 		socket.on("update", updateListener);
 		socket.connect();
@@ -70,10 +69,10 @@ public class Bot implements BrowserFieldEventListener {
 		JSONObject chatMessage = beRude();
 
 		if (chatMessage.length() != 0) {
-			socket.emit("chat-message", chatMessage);
+			socket.doEmit("chat-message", chatMessage);
 		}
 		learnFlames();
-		socket.emit("pressedKeys", jsonWalk);
+		socket.doEmit("pressedKeys", jsonWalk);
 	}
 
 	private void learnFlames() throws JSONException {

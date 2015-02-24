@@ -4,19 +4,19 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.github.nkzawa.emitter.Emitter;
-import com.github.nkzawa.socketio.client.Socket;
 
 import de.hs.browserfield.BrowserFieldEventListener;
 
 public class ConnectListener implements Emitter.Listener {
 
+	
 	private String iAm;
-	private Socket socket;
+	private SocketConnection socket; 
 	private BrowserFieldEventListener myListener;
 	
 	public void call(Object... args) {
 		System.out.println("Connect!: " + args);
-		iAm = socket.id();
+		iAm = socket.getId();
 		myListener.serverConnect(this);
 		JSONObject name = new JSONObject();
 		try {
@@ -25,10 +25,10 @@ public class ConnectListener implements Emitter.Listener {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		socket.emit("join", name);
+		socket.doEmit(SocketConnection.JOIN, name); 
 	}
 
-	public void setSocket(Socket socket) {
+	public void setSocket(SocketConnection socket) {
 		this.socket = socket;
 		
 	}
