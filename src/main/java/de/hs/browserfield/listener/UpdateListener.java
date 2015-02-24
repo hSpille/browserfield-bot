@@ -27,7 +27,7 @@ public class UpdateListener implements Emitter.Listener {
 		System.out.println("TickTime: " + (currentTimeMillis - lastTickTime));
 		lastTickTime = currentTimeMillis;
 		update = (JSONObject) args[0];
-		System.out.println("Update: " + update);
+		
 		players = new ArrayList<Player>();
 		parsePlayer(update);
 		this.myListener.worldUpdate(this);
@@ -40,7 +40,6 @@ public class UpdateListener implements Emitter.Listener {
 				Player p = new Player((JSONObject) allPlayers.get(i));
 				if (p.id.equalsIgnoreCase(iAm)) {
 					myPlayer = p;
-					System.out.println("My orientation:" +myPlayer.orientation);
 				}
 				this.players.add(p);
 			}
