@@ -20,13 +20,14 @@ import de.hs.browserfield.model.Player;
 
 public class Bot implements BrowserFieldEventListener {
 
-	private static final int BE_RUDE_PERCENTAGE = 990;
+	private static final int BE_RUDE_PERCENTAGE = 995;
 	private static final int ACCURACY = 5;
+	private static final int WAITFORNEXTSHOTCYCLES = 5;
 	private SocketConnection socket;
 	private String iAm;
 	private Player myPlayer;
 	private UpdateListener updateListener;
-	boolean didShootLastTime = false;
+	int shootCount = 0;
 	boolean didFlameThisHit = false;
 	private List<String> flames = new ArrayList<String>();
 
@@ -130,13 +131,17 @@ public class Bot implements BrowserFieldEventListener {
 				+ " My Orientation:" + myPlayer.orientation);
 		if (closestOpDirection < myPlayer.orientation + ACCURACY
 				&& closestOpDirection > myPlayer.orientation - ACCURACY) {
-			if (didShootLastTime) {
-				didShootLastTime = false;
-				jsonWalk.put("W");
-			} else {
-				didShootLastTime = true;
+			if (shootCount == 0) {
+				shootCount = 1;
 				jsonWalk.put("X");
 				jsonWalk.put("W");
+			} else {
+				if(shootCount >= WAITFORNEXTSHOTCYCLES){
+					shootCount = 0;
+				}else{
+					shootCount+=1;
+					jsonWalk.put("W");
+				}
 			}
 		} else {
 			if (closestOpDirection < myPlayer.orientation - ACCURACY) {

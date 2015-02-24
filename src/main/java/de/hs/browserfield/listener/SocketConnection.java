@@ -11,6 +11,10 @@ public class SocketConnection {
 	public static final String JOIN = "join";
 	
 	private Socket socket;
+	
+	private String lastMessageEvent = null;
+	private Object lastMessageContent = null;
+	
 
 	public SocketConnection(Socket socket) {
 		this.socket = socket;
@@ -21,8 +25,41 @@ public class SocketConnection {
 	}
 
 	public void doEmit(String messageType, JSONObject content) {
-		socket.emit(messageType, content);
+		if(!this.lastMessageIsEqualToThis(messageType,content)){
+			socket.emit(messageType, content);
+		}
+	}
+
+	private boolean lastMessageIsEqualToThis(String messageType,
+			Object content) {
 		
+		if(this.lastMessageEvent == null){
+			storeMessage(messageType,content);
+			return false;
+		}
+		if(!this.lastMessageEvent.equalsIgnoreCase(messageType)){
+			storeMessage(messageType,content);
+			return false;
+		}
+		if(this.lastMessageContent == null){
+			storeMessage(messageType,content);
+			return false;
+		}
+		if(lastMessageContent.getClass().equals(JSONArray.class) && content.getClass().equals(JSONArray.class)){
+			JSONArray old = (JSONArray) lastMessageContent;
+			JSONArray neC = (JSONArray) content;
+			if(!old.toString().equalsIgnoreCase(neC.toString())){
+				storeMessage(messageType,content);
+				return false;
+			}
+		}
+		storeMessage(messageType,content);
+		return true;
+	}
+
+	private void storeMessage(String messageType, Object content) {
+		this.lastMessageContent = content;
+		this.lastMessageEvent = messageType;
 	}
 
 	public void on(String event, Emitter.Listener listener) {
@@ -34,7 +71,9 @@ public class SocketConnection {
 	}
 
 	public void doEmit(String messageType, JSONArray content) {
-		socket.emit(messageType, content);
+		if(!this.lastMessageIsEqualToThis(messageType,content)){
+			socket.emit(messageType, content);
+		}
 	}	
 
 }
