@@ -3,8 +3,10 @@ package de.hs.browserfield;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -30,6 +32,7 @@ public class Bot implements BrowserFieldEventListener {
 	int shootCount = 0;
 	boolean didFlameThisHit = false;
 	private List<String> flames = new ArrayList<String>();
+	private HashSet<String> lastMovements = new HashSet<String>();
 
 	public void connect(String URL) throws InterruptedException,
 			URISyntaxException, JSONException {
@@ -73,7 +76,15 @@ public class Bot implements BrowserFieldEventListener {
 			socket.doEmit("chat-message", chatMessage);
 		}
 		learnFlames();
-		socket.doEmit("pressedKeys", jsonWalk);
+
+		HashSet<String> movements = new HashSet<String>();
+		for (int i=0; i<jsonWalk.length(); i++) {
+			movements.add(jsonWalk.getString(i));
+		}
+		if (!movements.equals(lastMovements)) {
+			socket.doEmit("pressedKeys", jsonWalk);
+			lastMovements = movements;
+		}
 	}
 
 	private void learnFlames() throws JSONException {
