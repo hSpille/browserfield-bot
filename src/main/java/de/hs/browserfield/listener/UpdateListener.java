@@ -27,7 +27,14 @@ public class UpdateListener implements Emitter.Listener {
 		System.out.println("TickTime: " + (currentTimeMillis - lastTickTime));
 		lastTickTime = currentTimeMillis;
 		if(args.length > 0){
-			update = (JSONObject) args[0];
+			// update = (JSONObject) args[0];
+			String json = (String) args[0];
+			try {
+				update = new JSONObject(json);
+			} catch(JSONException e) {
+				throw new RuntimeException(e);
+			}
+			System.out.println(update);
 			players = new ArrayList<Player>();
 			parsePlayer(update);
 			this.myListener.worldUpdate(this);
